@@ -12,6 +12,15 @@
   * Feature: Use realtime ticker for Binance
   * Bugfix: Bitmex symbols not being normalized correctly
   * Bugfix: Fix GCP PubSub backend
+  * Bugfix: Fix historical data REST api for Bitmex
+  * Feature: Use separate tasks (fed by async queue) for backend writing. Redis now uses this method
+  * Bugfix: Allow user specified max depths on Kraken
+  * Feature: Add backend queue support to ZMQ backend
+  * Feature: Add backend queue support to Socket backends
+  * Feature: Add backend queue support to influx and elastic
+  * Feature: Candle support
+  * Bugfix: Ignore untradeable symbols in Binance symbol generation
+  * Feature: Add backend support for queues in Postgres. Rework postgres backend and supply example SQL file to create tables for demo
 
 ### 1.7.0 (2021-02-15)
   * Feature: Use UVLoop if installed (not available on windows)
