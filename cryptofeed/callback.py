@@ -49,6 +49,12 @@ class TickerCallback(Callback):
         await super().__call__(feed, symbol, bid, ask, timestamp, receipt_timestamp)
 
 
+class TickerSizeCallback(Callback):
+    async def __call__(self, *, feed: str, symbol: str, bid: Decimal, ask: Decimal, timestamp: float,
+                       receipt_timestamp: float, bid_size: Decimal, ask_size: Decimal):
+        await super().__call__(feed, symbol, bid, ask, timestamp, receipt_timestamp, bid_size, ask_size)
+
+
 class BookCallback(Callback):
     """
     For full L2/L3 book updates
