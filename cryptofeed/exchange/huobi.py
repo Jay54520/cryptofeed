@@ -86,7 +86,7 @@ class Huobi(Feed):
 
     async def _ticker(self, msg: dict, timestamp: float):
         await self.callback(TICKER, feed=self.id,
-                            symbol=msg['tick']['symbol'],
+                            symbol=symbol_exchange_to_std(msg['tick']['symbol']),
                             bid=Decimal(msg['tick']['bid']),
                             ask=Decimal(msg['tick']['ask']),
                             bid_size=Decimal(msg['tick']['bidSize']),
