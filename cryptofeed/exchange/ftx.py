@@ -269,6 +269,7 @@ class FTX(Feed):
                 'sign': hmac.new(
                     self.key_secret.encode(), f'{ts}websocket_login'.encode(), 'sha256').hexdigest(),
                 'time': ts,
+                'subaccount': self.config[self.id.lower()].get('subaccount')
             }}))
             self._logged_in = True
 

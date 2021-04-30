@@ -24,7 +24,8 @@ def main():
     f = FeedHandler()
     f.add_feed(FTX(channels=[ORDER_INFO, FILLS], callbacks={ORDER_INFO: OrderInfoCallback(order_info),
                                                             FILLS: FillsCallback(fills)},
-                   config={'ftx': {'key_id': os.environ['key'], 'key_secret': os.environ['secret']}}))
+                   config={'ftx': {'key_id': os.environ['key'], 'key_secret': os.environ['secret'],
+                                   'subaccount': 'm1'}}))
     f.run()
 
 
