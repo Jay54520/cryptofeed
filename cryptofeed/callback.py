@@ -110,3 +110,7 @@ class TransactionsCallback(Callback):
 
 class OrderInfoCallback(Callback):
     pass
+
+
+class FillsCallback(Callback):
+    pass
