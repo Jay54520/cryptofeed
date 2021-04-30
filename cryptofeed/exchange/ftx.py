@@ -25,7 +25,6 @@ from cryptofeed.exceptions import BadChecksum
 from cryptofeed.feed import Feed
 from cryptofeed.standards import symbol_exchange_to_std, timestamp_normalize
 
-
 LOG = logging.getLogger('feedhandler')
 
 
@@ -61,7 +60,7 @@ class FTX(Feed):
                     }
                 ))
 
-            if chan != 'orders':
+            if not chan in ['orders', 'fills']:
                 for pair in symbols:
                     await conn.send(json.dumps(
                         {
@@ -240,7 +239,8 @@ class FTX(Feed):
             }
             if self.checksum_validation and self.__calc_checksum(pair) != check:
                 raise BadChecksum
-            await self.book_callback(self.l2_book[pair], L2_BOOK, pair, True, None, float(msg['data']['time']), timestamp)
+            await self.book_callback(self.l2_book[pair], L2_BOOK, pair, True, None, float(msg['data']['time']),
+                                     timestamp)
         else:
             # update
             delta = {BID: [], ASK: []}
@@ -258,7 +258,8 @@ class FTX(Feed):
                         self.l2_book[pair][s][price] = amount
             if self.checksum_validation and self.__calc_checksum(pair) != check:
                 raise BadChecksum
-            await self.book_callback(self.l2_book[pair], L2_BOOK, pair, False, delta, float(msg['data']['time']), timestamp)
+            await self.book_callback(self.l2_book[pair], L2_BOOK, pair, False, delta, float(msg['data']['time']),
+                                     timestamp)
 
     async def _login(self, conn: AsyncConnection):
         # will return error if already logged in
@@ -272,7 +273,6 @@ class FTX(Feed):
                 'subaccount': self.config[self.id.lower()].get('subaccount')
             }}))
             self._logged_in = True
-
 
     async def _order(self, msg: dict, timestamp: float):
         keys = ('filledSize', 'remainingSize', 'size', 'price', 'avgFillPrice', 'reduceOnly', 'postOnly', 'ioc')
