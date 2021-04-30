@@ -176,7 +176,7 @@ def _ftx_helper(endpoint: str, exchange: str):
         raise_failure_explanation(exchange, why, {endpoint: r})
 
 
-def ftx_symbols() -> Dict[str, str]:
+def ftx_symbols(key_id='') -> Dict[str, str]:
     return _ftx_helper('https://ftx.com/api/markets', FTX)
 
 

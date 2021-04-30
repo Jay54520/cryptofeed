@@ -252,7 +252,8 @@ _feed_to_exchange_map = {
         BYBIT: 'instrument_info.100ms'
     },
     ORDER_INFO: {
-        GEMINI: ORDER_INFO
+        GEMINI: ORDER_INFO,
+        FTX: 'orders',
     },
     CANDLES: {
         BINANCE: 'kline_'
