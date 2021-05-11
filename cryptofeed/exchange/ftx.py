@@ -6,6 +6,7 @@ associated with this software.
 '''
 
 import asyncio
+import hmac
 import logging
 from decimal import Decimal
 from time import time
@@ -17,7 +18,7 @@ from sortedcontainers import SortedDict as sd
 from yapic import json
 
 from cryptofeed.connection import AsyncConnection
-from cryptofeed.defines import BID, ASK, BUY
+from cryptofeed.defines import BID, ASK, BUY, ORDER_INFO
 from cryptofeed.defines import FTX as FTX_id
 from cryptofeed.defines import FUNDING, L2_BOOK, LIQUIDATIONS, OPEN_INTEREST, SELL, TICKER, TRADES
 from cryptofeed.exceptions import BadChecksum
@@ -49,14 +50,24 @@ class FTX(Feed):
             if chan == OPEN_INTEREST:
                 asyncio.create_task(self._open_interest(symbols))  # TODO: use HTTPAsyncConn
                 continue
-            for pair in symbols:
+            if chan == 'orders':
+                await self._login(conn)
                 await conn.send(json.dumps(
                     {
                         "channel": chan,
-                        "market": pair,
                         "op": "subscribe"
                     }
                 ))
+
+            if chan != 'orders':
+                for pair in symbols:
+                    await conn.send(json.dumps(
+                        {
+                            "channel": chan,
+                            "market": pair,
+                            "op": "subscribe"
+                        }
+                    ))
 
     def __calc_checksum(self, pair):
         bid_it = reversed(self.l2_book[pair][BID])
@@ -247,6 +258,29 @@ class FTX(Feed):
                 raise BadChecksum
             await self.book_callback(self.l2_book[pair], L2_BOOK, pair, False, delta, float(msg['data']['time']), timestamp)
 
+    async def _login(self, conn: AsyncConnection):
+        ts = int(time() * 1000)
+        await conn.send(json.dumps({'op': 'login', 'args': {
+            'key': self.key_id,
+            'sign': hmac.new(
+                self.key_secret.encode(), f'{ts}websocket_login'.encode(), 'sha256').hexdigest(),
+            'time': ts,
+        }}))
+
+
+    async def _order(self, msg: dict, timestamp: float):
+        keys = ('filledSize', 'remainingSize', 'size', 'price', 'avgFillPrice', 'reduceOnly', 'postOnly', 'ioc')
+        data = {k: msg['data'][k] for k in keys if k in msg['data']}
+        await self.callback(ORDER_INFO, feed=self.id,
+                            symbol=symbol_exchange_to_std(msg['data']['market']),
+                            status=msg['data']['status'],
+                            order_id=msg['data']['id'],
+                            side=msg['data']['side'],
+                            timestamp=msg['data']['createdAt'].timestamp(),
+                            receipt_timestamp=timestamp,
+                            **data
+                            )
+
     async def message_handler(self, msg: str, conn, timestamp: float):
 
         msg = json.loads(msg, parse_float=Decimal)
@@ -259,6 +293,8 @@ class FTX(Feed):
                 await self._trade(msg, timestamp)
             elif msg['channel'] == 'ticker':
                 await self._ticker(msg, timestamp)
+            elif msg['channel'] == 'orders':
+                await self._order(msg, timestamp)
             else:
                 LOG.warning("%s: Invalid message type %s", self.id, msg)
         else:
